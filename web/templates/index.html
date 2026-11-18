@@ -1,0 +1,31 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sniper Net Version 5</title>
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <main class="game">
+        <h1>SNIPER NET</h1>
+        <p>Version 5 — Multiplayer</p>
+
+        <div id="status">Ready</div>
+
+        <div class="commands">
+            <input id="command"
+                   type="text"
+                   placeholder="Type host or join ROOMCODE"
+                   autocomplete="off">
+            <button id="run-command">Run</button>
+        </div>
+
+        <pre id="output">Welcome to Sniper Net Version 5.</pre>
+    </main>
+
+    <script src="{{ url_for('static', filename='js/game.js') }}"></script>
+</body>
+</html>

@@ -48,6 +48,7 @@ NEXT_UPDATE = datetime(2026, 11, 22, 18, 0)
 W, H = 1280, 720
 FPS = 60
 DEFAULT_PORT = 5555
+NET_VERSION = "5"  # network protocol version stamp; keeps v5 isolated from v4
 FONT_NAMES = "menlo,monaco,consolas,couriernew,dejavusansmono,monospace"
 
 GREEN = (80, 255, 120)
@@ -249,6 +250,8 @@ class Net:
                 self._host_emit({"t": "sys", "text": "%s left" % name})
 
     def _host_handle(self, c, msg):
+        if msg.get("v") != NET_VERSION:
+            return  # ignore clients from other game versions (no cross-version rooms)
         t = msg.get("t")
         if t == "hello":
             name = str(msg.get("name", "?"))[:16]
@@ -261,6 +264,8 @@ class Net:
             self._host_emit({"t": "chat", "name": name, "text": str(msg.get("text", ""))[:200]})
 
     def _host_emit(self, msg):
+        msg = dict(msg)  # don't mutate the caller's object
+        msg["v"] = NET_VERSION  # stamp every broadcast so v4/v5 never mix
         self.inbox.put(msg)
         with self.lock:
             socks = list(self.clients)
@@ -287,7 +292,7 @@ class Net:
             return
         s.settimeout(None)
         self.sock, self.mode = s, "client"
-        self._send(s, {"t": "hello", "name": self.name})
+        self._send(s, {"t": "hello", "name": self.name, "v": NET_VERSION})
         self._sys("connected to %s:%d" % (ip, port))
         buf = b""
         try:
@@ -299,9 +304,12 @@ class Net:
                 while b"\n" in buf:
                     line, buf = buf.split(b"\n", 1)
                     try:
-                        self.inbox.put(json.loads(line))
+                        msg = json.loads(line)
                     except ValueError:
-                        pass
+                        continue
+                    if msg.get("v") != NET_VERSION:
+                        continue  # ignore traffic from other game versions
+                    self.inbox.put(msg)
         except OSError:
             pass
         if gen == self.gen:
@@ -1141,6 +1149,24 @@ class Game:
             self.console.say("connected as %s (only the host sees the list)" % self.net.name)
         else:
             self.console.say("not in a lobby", RED)
+
+    def cmd_status(self, args):
+        """status           - show network/connection status"""
+        net = self.net
+        lines = [
+            "mode: %s" % (net.mode or "offline"),
+            "name: %s" % net.name,
+            "local ip: %s" % local_ip(),
+            "port: %d" % DEFAULT_PORT,
+        ]
+        if net.mode == "host":
+            lines.append("players: %d (host sees the lobby list)" % len(net.players()))
+        elif net.mode == "client":
+            lines.append("players: connected to a lobby (host sees the list)")
+        else:
+            lines.append("players: not in a lobby")
+        for line in lines:
+            self.console.say(line, CYAN)
 
     def cmd_say(self, args):
         """say <text>       - send a chat message"""

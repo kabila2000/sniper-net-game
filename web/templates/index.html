@@ -3,29 +3,63 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Sniper Net Version 5</title>
     <link rel="stylesheet"
           href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
-    <main class="game">
-        <h1>SNIPER NET</h1>
-        <p>Version 5 — Multiplayer</p>
+    <main class="game-container">
+        <header>
+            <h1>Sniper Net V5</h1>
+            <p>Online Multiplayer</p>
+            <div id="status">Connecting to multiplayer server...</div>
+            <span id="connection-dot">●</span>
+        </header>
 
-        <div id="status">Ready</div>
+        <section id="lobby">
+            <h2>Multiplayer Lobby</h2>
 
-        <div class="commands">
-            <input id="command"
-                   type="text"
-                   placeholder="Type host or join ROOMCODE"
-                   autocomplete="off">
-            <button id="run-command">Run</button>
-        </div>
+            <label for="player-name">Player name</label>
+            <input id="player-name" type="text"
+                   placeholder="Enter your name" maxlength="20">
 
-        <pre id="output">Welcome to Sniper Net Version 5.</pre>
+            <div class="lobby-actions">
+                <button id="host-game" type="button">Host Game</button>
+            </div>
+
+            <label for="room-code-input">Room code</label>
+            <input id="room-code-input" type="text"
+                   placeholder="Enter room code" maxlength="12">
+
+            <button id="join-game" type="button">Join Game</button>
+            <button id="leave-game" type="button">Leave Room</button>
+
+            <h3>Current room</h3>
+            <p id="display-room-code">No room joined</p>
+            <button id="copy-code" type="button">Copy Room Code</button>
+
+            <h3>Players</h3>
+            <div id="multiplayer-status">Not in a room</div>
+            <ul id="player-list"></ul>
+        </section>
+
+        <section id="game-console">
+            <h2>Game Console</h2>
+            <form id="command-form">
+                <input id="command" type="text"
+                       placeholder="Enter a command..."
+                       autocomplete="off" maxlength="100">
+                <button type="submit">Run</button>
+            </form>
+            <div id="output" aria-live="polite"></div>
+        </section>
     </main>
 
+    <!-- Load Socket.IO from the public multiplayer server. -->
+    <script src="https://approaches-contributor-taylor-cars.trycloudflare.com/socket.io/socket.io.js"></script>
+
+    <!-- Website multiplayer client. -->
     <script src="{{ url_for('static', filename='js/game.js') }}"></script>
 </body>
 </html>
